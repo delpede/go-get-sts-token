@@ -1,0 +1,1 @@
+# go-get-sts-token
