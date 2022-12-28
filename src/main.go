@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"gopkg.in/ini.v1"
 )
 
@@ -72,7 +77,46 @@ func updateAwsCredentials(homedir string) {
 }
 
 func getStsToken() {
-	// TODO
+	var (
+		mfaDeviceArn string
+		mfaCode      string
+	)
+
+	fmt.Println("Enter MFA Device ARN: ")
+	fmt.Scanln(&mfaDeviceArn)
+
+	fmt.Println("Enter MFA Code: ")
+	fmt.Scanln(&mfaCode)
+
+	fmt.Println("MFA Device ARN is ", mfaDeviceArn, " and MFA vode is ", mfaCode)
+
+	fmt.Println("Initiating Session with AWS")
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String("eu-west-1"),
+		Credentials: credentials.NewSharedCredentials("", "netic-iam"),
+	})
+
+	if err != nil {
+		fmt.Println("Error creating session ", err)
+		return
+	}
+	fmt.Println("Constructing a Service Client with STS")
+	stsClient := sts.New(sess)
+
+	params := &sts.GetSessionTokenInput{
+
+		SerialNumber: &mfaDeviceArn,
+		TokenCode:    &mfaCode,
+	}
+
+	req, resp := stsClient.GetSessionTokenRequest(params)
+
+	err = req.Send()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Printing Session Token:")
+	fmt.Println(resp.Credentials)
 }
 
 func main() {
