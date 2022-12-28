@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"gopkg.in/ini.v1"
 )
 
 func backupAwsConfig(homedir string) {
@@ -56,18 +58,30 @@ func backupAwsConfig(homedir string) {
 
 }
 
-func main() {
+func updateAwsCredentials(homedir string) {
 
-	homedir, hd_err := os.UserHomeDir()
-	if hd_err != nil {
-		log.Fatal("Error looking up homedir: %s", hd_err)
+	aws_dir := filepath.Join(homedir, "/.aws/credentials")
+
+	aws_credentials, err := ini.Load(aws_dir)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// aws_dir := filepath.Join(homedir, "/.aws/credentials")
+	aws_credentials.Section("default").Key("aws_session_token").SetValue("exauYuMeghoo4pi8roh2")
+	aws_credentials.SaveTo(aws_dir)
+}
 
-	// aws_credentials, err := ini.Load(aws_dir)
-	// if err != nil {
-	// 	log.Fatal("AWS Credentials file nt loaded")
-	// }
+func getStsToken() {
+	// TODO
+}
+
+func main() {
+
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	backupAwsConfig(homedir)
+	updateAwsCredentials(homedir)
 }
