@@ -88,16 +88,17 @@ func getStsToken() {
 	fmt.Println("Enter MFA Code: ")
 	fmt.Scanln(&mfaCode)
 
-	fmt.Println("MFA Device ARN is ", mfaDeviceArn, " and MFA vode is ", mfaCode)
+	fmt.Println("MFA Device ARN is ", mfaDeviceArn, " and MFA code is ", mfaCode)
 
 	fmt.Println("Initiating Session with AWS")
 	sess, err := session.NewSession(&aws.Config{
+		// FIXME remove hardcoded
 		Region:      aws.String("eu-west-1"),
 		Credentials: credentials.NewSharedCredentials("", "netic-iam"),
 	})
 
 	if err != nil {
-		fmt.Println("Error creating session ", err)
+		log.Fatal(err)
 		return
 	}
 	fmt.Println("Constructing a Service Client with STS")
@@ -113,7 +114,7 @@ func getStsToken() {
 
 	err = req.Send()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	fmt.Println("Printing Session Token:")
 	fmt.Println(resp.Credentials)
@@ -127,5 +128,6 @@ func main() {
 	}
 
 	backupAwsConfig(homedir)
+	getStsToken()
 	updateAwsCredentials(homedir)
 }
